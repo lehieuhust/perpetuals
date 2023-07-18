@@ -426,10 +426,6 @@ pub fn trigger_tp_sl(
             msgs.push(internal_close_position(deps, &position, quote_asset_limit, STOP_LOSS_REPLY_ID)?);
         };
     } else if position.side == Side::Sell {
-        println!("tp_sl - position.side: {:?}", position.side);
-            msgs.push(internal_close_position(deps, &position, quote_asset_limit, STOP_LOSS_REPLY_ID)?);
-        };
-    } else if position.side == Side::Sell {
         if spot_price >= position.take_profit && 
             position.take_profit.checked_mul(5u128.into())?.checked_div(1000u128.into())? 
             >= spot_price.checked_sub(position.take_profit)? ||
