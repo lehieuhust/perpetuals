@@ -174,7 +174,6 @@ impl EngineController {
         let msg = ExecuteMsg::Liquidate {
             vamm,
             position_id,
-            trader,
             quote_asset_limit,
         };
         wasm_execute(&self.0, &msg, vec![])
