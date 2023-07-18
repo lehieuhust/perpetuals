@@ -91,12 +91,16 @@ pub fn update_open_interest_notional(
         .config(&deps.querier)?
         .open_interest_notional_cap;
 
+    println!("update_open_interest_notional - cap: {}", cap);
+
     let mut updated_open_interest =
         amount.checked_add(Integer::new_positive(state.open_interest_notional))?;
 
     if updated_open_interest.is_negative() {
         updated_open_interest = Integer::zero();
     }
+
+    println!("update_open_interest_notional - updated_open_interest: {}", updated_open_interest);
 
     // check if the cap has been exceeded - if trader address is in whitelist this bypasses
     if (!cap.is_zero()
@@ -123,6 +127,9 @@ pub fn check_base_asset_holding_cap(
     let cap = vamm_controller
         .config(&deps.querier)?
         .base_asset_holding_cap;
+
+    println!("check_base_asset_holding_cap - size: {}", size);
+    println!("check_base_asset_holding_cap - cap: {}", cap);
 
     // check if the cap has been exceeded - if trader address is in whitelist this bypasses
     if (!cap.is_zero() && size > cap)
@@ -200,12 +207,18 @@ pub fn get_position_notional_unrealized_pnl(
             }
         }
 
+        println!("get_position_notional_unrealized_pnl - output_notional: {}", output_notional);
+        println!("get_position_notional_unrealized_pnl - position.notional: {}", position.notional);
+
         // we are short if the size of the position is less than 0
         unrealized_pnl = if position.direction == Direction::AddToAmm {
             Integer::new_positive(output_notional) - Integer::new_positive(position.notional)
         } else {
             Integer::new_positive(position.notional) - Integer::new_positive(output_notional)
         };
+
+        println!("get_position_notional_unrealized_pnl - unrealized_pnl: {}", unrealized_pnl);
+
     }
 
     Ok(PositionUnrealizedPnlResponse {
@@ -227,16 +240,25 @@ pub fn calc_remain_margin_with_funding_payment(
         * position.size
         / Integer::new_positive(config.decimals);
 
+    // println!("calc_remain_margin_with_funding_payment - latest_premium_fraction: {}", latest_premium_fraction);
+    // println!("calc_remain_margin_with_funding_payment - position.last_updated_premium_fraction: {}", position.last_updated_premium_fraction);
+    // println!("calc_remain_margin_with_funding_payment - position.size: {}", position.size);
+    // println!("calc_remain_margin_with_funding_payment - funding_payment: {}", funding_payment);
+
     // calculate the remaining margin
     let mut remaining_margin: Integer =
         margin_delta - funding_payment + Integer::new_positive(position.margin);
 
     let mut bad_debt = Integer::zero();
 
+    // println!("calc_remain_margin_with_funding_payment - remaining_margin: {}", remaining_margin);
+
     if remaining_margin.is_negative() {
         bad_debt = remaining_margin.invert_sign();
         remaining_margin = Integer::zero();
     }
+
+    // println!("calc_remain_margin_with_funding_payment - bad_debt: {}", bad_debt);
 
     // if the remain is negative, set it to zero
     // and set the rest to
@@ -353,6 +375,10 @@ pub fn require_additional_margin(
     margin_ratio: Integer,
     base_margin: Uint128,
 ) -> StdResult<Response> {
+
+    println!("require_additional_margin - margin_ratio: {:?}", margin_ratio);
+    println!("require_additional_margin - base_margin: {:?}", base_margin);
+
     if margin_ratio < Integer::new_positive(base_margin) {
         return Err(StdError::generic_err("Position is undercollateralized"));
     }
@@ -407,6 +433,8 @@ pub fn parse_swap(response: &SubMsgResponse) -> StdResult<(Uint128, Uint128, u64
     // Find swap inputs and output events
     let wasm = read_response("wasm", response)?;
     let swap = read_event("type", wasm)?;
+
+    println!("parse_swap - swap: {:?}", swap);
 
     match swap {
         "input" => {

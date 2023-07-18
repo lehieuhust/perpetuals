@@ -168,13 +168,12 @@ impl EngineController {
         &self,
         vamm: String,
         position_id: u64,
-        trader: String,
+        _trader: String,
         quote_asset_limit: Uint128,
     ) -> StdResult<CosmosMsg> {
         let msg = ExecuteMsg::Liquidate {
             vamm,
             position_id,
-            trader,
             quote_asset_limit,
         };
         wasm_execute(&self.0, &msg, vec![])
