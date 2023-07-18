@@ -76,6 +76,7 @@ pub fn instantiate(
 
     // find decimals of asset
     let decimal_response = eligible_collateral.get_decimals(&deps.querier)?;
+
     println!("instantiate margined engine - decimal_response: {}", decimal_response);
 
     // validate decimal places are correct, and return ratio max.
@@ -88,8 +89,10 @@ pub fn instantiate(
 
     // validate that the maintenance margin is not greater than the initial
     validate_margin_ratios(msg.initial_margin_ratio, msg.maintenance_margin_ratio)?;
+
     println!("instantiate margined engine - initial_margin_ratio: {}", msg.initial_margin_ratio);
     println!("instantiate margined engine - maintenance_margin_ratio: {}", msg.maintenance_margin_ratio);
+
     // config parameters
     let config = Config {
         owner: info.sender,

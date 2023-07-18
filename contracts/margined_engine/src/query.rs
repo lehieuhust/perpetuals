@@ -72,6 +72,7 @@ pub fn query_all_positions(
 
     for vamm in vamms.iter() {
         println!("query_all_positions - vamm: {:?}", vamm);
+
         let position_key = keccak_256(&[vamm.as_bytes()].concat());
         let positions = read_positions(deps.storage, &position_key, start_after, limit, order_by).unwrap();
 
@@ -114,6 +115,7 @@ pub fn query_cumulative_premium_fraction(deps: Deps, vamm: String) -> StdResult<
     };
 
     println!("query_cumulative_premium_fraction - result: {}", result);
+
     Ok(result)
 }
 

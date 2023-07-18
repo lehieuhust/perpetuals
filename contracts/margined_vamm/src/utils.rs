@@ -96,6 +96,7 @@ pub fn check_is_over_block_fluctuation_limit(
                 .checked_mul(config.decimals)?
                 .checked_div(state.base_asset_reserve.checked_add(base_asset_amount)?)
         }?;
+
         println!("check_is_over_block_fluctuation_limit - price: {}", price);
         if price > upper_limit || price < lower_limit {
             println!("check_is_over_block_fluctuation_limit - TOAC 3333");
