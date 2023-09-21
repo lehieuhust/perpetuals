@@ -1087,7 +1087,7 @@ fn test_openclose_position_to_check_fee_is_charged() {
     router.execute(alice.clone(), msg).unwrap();
 
     let engine_balance = usdc.balance(&router.wrap(), engine.addr().clone()).unwrap();
-    assert_eq!(engine_balance, to_decimals(60u64));
+    assert_eq!(engine_balance, to_decimals(42u64));
 
     let msg = engine
         .close_position(vamm.addr().to_string(), 1, to_decimals(0u64))
@@ -1184,7 +1184,7 @@ fn test_openclose_position_to_check_fee_is_charged_toll_ratio_5_percent() {
     let fee_pool_balance = usdc
         .balance(&router.wrap(), fee_pool.addr().clone())
         .unwrap();
-    assert_eq!(fee_pool_balance, to_decimals(65u64));
+    assert_eq!(fee_pool_balance, to_decimals(41u64));
 }
 
 #[test]

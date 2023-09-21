@@ -160,7 +160,7 @@ pub fn query_calc_fee(deps: Deps, quote_asset_amount: Uint128) -> StdResult<Calc
 
     if quote_asset_amount != Uint128::zero() {
         let config = read_config(deps.storage)?;
-
+        // println!("query_calc_fee - config: {:?}", config);
         res.toll_fee = quote_asset_amount
             .checked_mul(config.toll_ratio)?
             .checked_div(config.decimals)?;

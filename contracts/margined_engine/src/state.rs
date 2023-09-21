@@ -290,6 +290,8 @@ pub struct TmpSwapInfo {
     pub unrealized_pnl: Integer,    // any pnl due
     pub margin_to_vault: Integer,   // margin to be sent to vault
     pub fees_paid: bool,            // true if fees have been paid, used in case of reversing position
+    pub spread_fee: Uint128,        // spread fee
+    pub toll_fee: Uint128,          // toll fee
     pub take_profit: Uint128,       // take profit price of position
     pub stop_loss: Option<Uint128>, // stop loss price of position
 }

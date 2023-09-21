@@ -37,6 +37,7 @@ pub struct InstantiateMsg {
     pub funding_period: u64,
     pub toll_ratio: Uint128,
     pub spread_ratio: Uint128,
+    // pub min_quote_coin_amount: Uint128,
     pub fluctuation_limit_ratio: Uint128,
 }
 
@@ -48,6 +49,7 @@ pub enum ExecuteMsg {
         open_interest_notional_cap: Option<Uint128>,
         toll_ratio: Option<Uint128>,
         spread_ratio: Option<Uint128>,
+        // min_quote_coin_amount: Option<Uint128>,
         fluctuation_limit_ratio: Option<Uint128>,
         margin_engine: Option<String>,
         insurance_fund: Option<String>,

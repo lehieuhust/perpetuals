@@ -1,16 +1,12 @@
 use cosmwasm_std::{Addr, Deps, Env, StdError, StdResult, Storage, SubMsg, Uint128};
 
-use margined_utils::contracts::helpers::VammController;
-
 use crate::{
     contract::TRANSFER_FAILURE_REPLY_ID,
     state::{read_config, State},
 };
 
 use margined_common::{asset::AssetInfo, messages::wasm_execute};
-use margined_perp::margined_engine::TransferResponse;
 use margined_perp::margined_insurance_fund::ExecuteMsg as InsuranceFundExecuteMessage;
-use margined_perp::margined_vamm::CalcFeeResponse;
 
 pub fn execute_transfer_from(
     storage: &dyn Storage,
@@ -89,15 +85,15 @@ pub fn execute_insurance_fund_withdrawal(deps: Deps, amount: Uint128) -> StdResu
 pub fn transfer_fees(
     deps: Deps,
     from: Addr,
-    vamm: Addr,
-    notional: Uint128,
-) -> StdResult<TransferResponse> {
-    let vamm_controller = VammController(vamm);
+    spread_fee: Uint128,
+    toll_fee: Uint128,
+) -> StdResult<Vec<SubMsg>> {
+    // let vamm_controller = VammController(vamm);
 
-    let CalcFeeResponse {
-        spread_fee,
-        toll_fee,
-    } = vamm_controller.calc_fee(&deps.querier, notional)?;
+    // let CalcFeeResponse {
+    //     spread_fee,
+    //     toll_fee,
+    // } = vamm_controller.calc_fee(&deps.querier, notional)?;
 
     let mut messages: Vec<SubMsg> = vec![];
 
@@ -118,11 +114,7 @@ pub fn transfer_fees(
         messages.push(msg);
     };
 
-    Ok(TransferResponse {
-        messages,
-        spread_fee,
-        toll_fee,
-    })
+    Ok(messages)
 }
 
 pub fn withdraw(
