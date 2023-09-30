@@ -331,20 +331,20 @@ pub struct TmpPriceInfo {
     pub spot_price: Uint128,    // spot price when close position
 }
 
-pub fn store_tmp_price(storage: &mut dyn Storage, tpsl_info: &TmpPriceInfo) -> StdResult<()> {
-    Ok(storage.set(KEY_TMP_PRICE, &to_vec(tpsl_info)?))
-}
+// pub fn store_tmp_price(storage: &mut dyn Storage, tpsl_info: &TmpPriceInfo) -> StdResult<()> {
+//     Ok(storage.set(KEY_TMP_PRICE, &to_vec(tpsl_info)?))
+// }
 
 // pub fn remove_tmp_price<'a>(storage: &'a mut dyn Storage) {
 //     storage.remove(KEY_TMP_PRICE)
 // }
 
-pub fn read_tmp_price(storage: &dyn Storage) -> StdResult<TmpPriceInfo> {
-    match storage.get(KEY_TMP_PRICE) {
-        Some(data) => from_slice(&data),
-        None => Err(StdError::generic_err("Price info not found")),
-    }
-}
+// pub fn read_tmp_price(storage: &dyn Storage) -> StdResult<TmpPriceInfo> {
+//     match storage.get(KEY_TMP_PRICE) {
+//         Some(data) => from_slice(&data),
+//         None => Err(StdError::generic_err("Price info not found")),
+//     }
+// }
 
 #[cw_serde]
 #[derive(Default)]

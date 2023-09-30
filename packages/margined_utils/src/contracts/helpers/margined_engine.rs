@@ -247,7 +247,7 @@ impl EngineController {
         take_profit: bool,
         limit: u32,
     ) -> StdResult<CosmosMsg> {
-        let msg = ExecuteMsg::TriggerTpSl {
+        let msg = ExecuteMsg::TriggerMultipleTpSl {
             vamm,
             side,
             take_profit,

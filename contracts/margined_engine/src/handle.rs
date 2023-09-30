@@ -1,5 +1,5 @@
 use cosmwasm_std::{
-    Addr, DepsMut, Env, MessageInfo, Response, StdError, StdResult, Storage, SubMsg, Uint128, Order,
+    Addr, DepsMut, Env, MessageInfo, Order, Response, StdError, StdResult, Storage, SubMsg, Uint128, QuerierWrapper, CosmosMsg,
 };
 use margined_utils::contracts::helpers::VammController;
 
@@ -195,11 +195,8 @@ pub fn open_position(
         .checked_mul(leverage)?
         .checked_div(config.decimals)?;
 
-    let entry_price = vamm_controller.input_price(
-        &deps.querier,
-        side_to_direction(&side),
-        open_notional,
-    )?;
+    let entry_price =
+        vamm_controller.input_price(&deps.querier, side_to_direction(&side), open_notional)?;
 
     match side {
         Side::Buy => {
@@ -481,7 +478,54 @@ pub fn close_position(
     ]))
 }
 
-pub fn trigger_tp_sl(
+pub fn trigger_tpsl(
+    // deps: DepsMut,
+    storage: &mut dyn Storage,
+    querier: &QuerierWrapper,
+    vamm: Addr,
+    position: &Position,
+    quote_asset_limit: Uint128,
+) -> StdResult<Response> {
+    let config = read_config(storage)?;
+
+    // read the position for the trader from vamm
+    // let vamm_key = keccak_256(&[vamm.as_bytes()].concat());
+    let vamm_controller = VammController(vamm.clone());
+
+    // check the position isn't zero
+    require_position_not_zero(position.size.value)?;
+
+    let spot_price = vamm_controller.spot_price(querier)?;
+
+    let mut msgs: Vec<SubMsg> = vec![];
+
+    let tp_sl_action = check_tp_sl_price(
+        config,
+        &position,
+        spot_price,
+    )
+    .unwrap();
+
+    if tp_sl_action != "" {  
+        msgs.push(internal_close_position(
+            storage,
+            &position,
+            quote_asset_limit,
+            CLOSE_POSITION_REPLY_ID,
+        )?);
+    }
+
+    Ok(Response::new()
+        .add_submessages(msgs)
+        .add_attributes(vec![
+            ("pair", &position.pair),
+            ("position_id", &position.position_id.to_string()),
+            ("position_side", &format!("{:?}", position.side)),
+            ("trader", &position.trader.clone().into_string()),
+        ]))
+}
+
+pub fn trigger_multiple_tpsl(
     deps: DepsMut,
     vamm: String,
     side: Side,
@@ -496,41 +540,37 @@ pub fn trigger_tp_sl(
     let mut tp_sl_flag: bool = false;
 
     require_vamm(deps.as_ref(), &config.insurance_fund, &vamm_addr)?;
-    let order_by = match take_profit {
-        true => {
-            if side == Side::Buy { Order::Descending } else { Order::Ascending }
-        }
-        false => {
-            if side == Side::Buy { Order::Ascending } else { Order::Descending }
-        }
+
+    let order_by = if take_profit && side == Side::Buy || !take_profit && side == Side::Sell {
+        Order::Descending
+    } else {
+        Order::Ascending
     };
 
     let ticks = query_ticks(
-        deps.storage,
+        deps.as_ref().storage,
         vamm.clone(),
         side,
         None,
         Some(limit),
         Some(order_by.into()),
-    )
-    .unwrap();
+    )?;
 
     for tick in ticks.ticks.iter() {
         let position_by_price = query_positions(
-            deps.storage,
+            deps.as_ref().storage,
             vamm.clone(),
             Some(side),
             PositionFilter::Price(tick.entry_price),
             None,
             Some(limit),
             Some(Order::Ascending.into()),
-        )
-        .unwrap();
+        )?;
 
         for position in position_by_price.iter() {
             // check the position isn't zero
             require_position_not_zero(position.size.value)?;
-            let tp_sl_action = check_tp_sl_price(config.clone(), &position, spot_price).unwrap();
+            let tp_sl_action = check_tp_sl_price(config.clone(), &position, spot_price)?;
             if take_profit {
                 if tp_sl_action == "trigger_take_profit" {
                     tp_sl_flag = true;
@@ -542,12 +582,15 @@ pub fn trigger_tp_sl(
             }
             if tp_sl_flag {
                 tp_sl_flag = false;
-                msgs.push(internal_close_position(
+                let res = trigger_tpsl(
                     deps.storage,
-                    &position,
-                    Uint128::zero(),
-                    TPSL_POSITION_REPLY_ID,
-                )?);
+                    &deps.querier,
+                    vamm_addr.clone(),
+                    position,
+                    Uint128::zero()
+                )?;
+                // println!("trigger_tpsl - res: {:?}", res.messages);
+                msgs = res.messages;
             }
         }
     }

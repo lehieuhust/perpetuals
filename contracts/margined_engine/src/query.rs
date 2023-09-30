@@ -77,7 +77,7 @@ pub fn query_all_positions(
     for vamm in vamms.iter() {
         let vamm_key = keccak_256(&[vamm.as_bytes()].concat());
         let positions =
-            read_positions(deps.storage, &vamm_key, start_after, limit, order_by).unwrap();
+            read_positions(deps.storage, &vamm_key, start_after, limit, order_by)?;
 
         for position in positions {
             // a default is returned if no position found with no trader set
@@ -364,7 +364,7 @@ pub fn query_position_is_tpsl(
     let config = read_config(deps.storage)?;
     let vamm_addr = deps.api.addr_validate(&vamm)?;
     let vamm_controller = VammController(vamm_addr.clone());
-    let spot_price = vamm_controller.spot_price(&deps.querier).unwrap();
+    let spot_price = vamm_controller.spot_price(&deps.querier)?;
 
     let order_by = match take_profit {
         true => {
@@ -383,8 +383,7 @@ pub fn query_position_is_tpsl(
         None,
         Some(limit),
         Some(order_by.into()),
-    )
-    .unwrap();
+    )?;
 
     for tick in ticks.ticks.iter() {
         let position_by_price = query_positions(
@@ -395,11 +394,10 @@ pub fn query_position_is_tpsl(
             None,
             Some(limit),
             Some(1),
-        )
-        .unwrap();
+        )?;
 
         for position in position_by_price.iter() {
-            let tp_sl_action = check_tp_sl_price(config.clone(), &position, spot_price).unwrap();
+            let tp_sl_action = check_tp_sl_price(config.clone(), &position, spot_price)?;
             if take_profit {
                 if tp_sl_action == "trigger_take_profit" {
                     is_tpsl = true;

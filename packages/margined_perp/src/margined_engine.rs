@@ -86,7 +86,7 @@ pub enum ExecuteMsg {
         position_id: u64,
         quote_asset_limit: Uint128,
     },
-    TriggerTpSl {
+    TriggerMultipleTpSl {
         vamm: String,
         side: Side,
         take_profit: bool,
